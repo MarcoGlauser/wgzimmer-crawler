@@ -1,7 +1,10 @@
+import hashlib
 import random
 
 import scrapy
 from scrapy import FormRequest
+
+from scraper.wgzimmer.items import WgzimmerItem
 
 
 class BlogSpider(scrapy.Spider):
@@ -30,7 +33,7 @@ class BlogSpider(scrapy.Spider):
         links = response.css('div#content ul.list li a::attr(href)').extract()
         cleaned_links = list(filter(lambda a: a != "#", links))
         index = random.randrange(0, len(cleaned_links)-1)
-        for clean_link in cleaned_links[index:index+1]:
+        for clean_link in cleaned_links:
             yield scrapy.Request(response.urljoin(clean_link), callback=self.parse_room)
 
     def parse_room(self, response):
@@ -40,16 +43,20 @@ class BlogSpider(scrapy.Spider):
             address_information = response.xpath(search_string).extract()
             return address_information[1].strip()
 
-        street = extract_meta_information('adress-region', 'Adresse')
-        city = extract_meta_information('adress-region', 'Ort')
-        from_date = extract_meta_information('date-cost', 'Ab dem')
-        to_date = extract_meta_information('date-cost', 'Bis')
-        rent = extract_meta_information('date-cost', 'Miete / Monat')
+        def extract_description(css_class):
+            search_string = ".%s p::text" % css_class
+            return response.css(search_string).extract_first()
 
-        self.log(rent)
-        self.log(to_date)
-        self.log(from_date)
-        self.log(street)
-        self.log(city)
+        data = {
+            'url': response.url,
+            'rent': extract_meta_information('date-cost', 'Miete / Monat'),
+            'from_date': extract_meta_information('date-cost', 'Ab dem'),
+            'to_date': extract_meta_information('date-cost', 'Bis'),
+            'street': extract_meta_information('adress-region', 'Adresse'),
+            'city': extract_meta_information('adress-region', 'Ort'),
+            'room_description': extract_description("mate-content"),
+            'profile_description': extract_description('room-content'),
+            'mates_description': extract_description("person-content")
+        }
 
-
+        return WgzimmerItem(**data)

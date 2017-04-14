@@ -1,1 +1,10 @@
 scrapy
+scrapy-djangoitem
+Django
+dateparser
+geocoder
+psycopg2
+djangorestframework
+django-filter
+whitenoise
+brotlipy

@@ -6,9 +6,11 @@
 # http://doc.scrapy.org/en/latest/topics/items.html
 
 import scrapy
+from scrapy_djangoitem import DjangoItem
+
+# noinspection PyUnresolvedReferences
+from room.models import Room
 
 
-class WgzimmerItem(scrapy.Item):
-    # define the fields for your item here like:
-    # name = scrapy.Field()
-    pass
+class WgzimmerItem(DjangoItem):
+    django_model = Room

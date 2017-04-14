@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+  <head>
+      <link type="text/css" rel="stylesheet" href="/static/css/style.css">
+      <title>WG-Zimmer Map</title>
+  </head>
+  <body>
+    <div id="map"></div>
+    <script
+        src="https://code.jquery.com/jquery-3.2.1.min.js"
+        integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+        crossorigin="anonymous">
+    </script>
+    <script>
+        function initMap() {
+
+            var map = new google.maps.Map(document.getElementById('map'), {
+                zoom: 14,
+                center: {lat: 47.3746283, lng: 8.5350842}
+            });
+
+
+
+            function draw_rooms_on_map(rooms){
+                for(var i = 0; i < rooms.length; i++){
+                    draw_room_on_map(rooms[i])
+                }
+            }
+            function draw_room_on_map(room){
+                var location = {lat: parseFloat(room.location.latitude), lng: parseFloat(room.location.longitude)}
+                console.log(location)
+                var marker = new google.maps.Marker({
+                    position: location,
+                    map: map
+                });
+            }
+
+            function recursive_room_fetcher(url, rooms) {
+                $.ajax(url,{
+                    success: function (data) {
+                        rooms.push.apply(rooms, data.results)
+                        if(data.next){
+                            recursive_room_fetcher(data.next,rooms)
+                        }
+                        else {
+                            draw_rooms_on_map(rooms)
+                        }
+                    }
+                })
+            }
+
+            recursive_room_fetcher('/room/rooms/',[])
+        }
+    </script>
+    <script
+        async
+        defer
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDB5RcmXI8LsrdMVBU9to8U6fjfKU3RaSQ&callback=initMap">
+    </script>
+  </body>
+</html>
